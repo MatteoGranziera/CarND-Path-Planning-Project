@@ -196,7 +196,7 @@ vector<vector<double>> Planner::calculateTrajectory(){
     ref_vel+=.433;
   }
 
-  // If the car is in the correct choosen lane reset to KEEP_LANE state  +- 0.5
+  // If the car is in the correct choosen lane reset to KEEP_LANE state  +- 1
   if(state == CHANGING_LANE && car_d < (2+4*lane+1) && car_d > (2+4*lane-1)){
     state = KEEP_LANE;
   }
