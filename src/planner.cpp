@@ -61,13 +61,15 @@ void Planner::updateVelocity(){
       double vx = sensor_fusion[i][3];
       double vy = sensor_fusion[i][4];
 
-      double check_speed =  sqrt((vx*vx)+(vy*vy));
+      double check_speed =  sqrt(vx*vx+vy*vy);
       double check_car_s = sensor_fusion[i][5];
 
       check_car_s+= ((double)prev_size*time_step*check_speed);
 
       if(check_car_s > car_s && (check_car_s-car_s) < too_close_mt){
-        target_vel = check_speed;
+        // cout << sensor_fusion[i][0] << " - check speed: " << check_speed << endl;
+
+        target_vel = check_speed*2.24 - (1/exp(check_car_s-car_s) * 5) ;
         // cout<< "Update Velocity: " << target_vel<< endl;
       }
     }
@@ -160,25 +162,17 @@ double Planner::calculateCost(Trajectory &trajectory){
       // Calculate future position of the vehicle
       check_car_s+= ((double)prev_size*time_step*check_speed);
 
-      costs.car_s = car_s;
-      costs.prev_size = prev_size;
-      costs.time_step = time_step;
-      costs.check_speed = check_speed;
-      costs.check_car_s = check_car_s;
+      double ref_vel_mt_s = ref_vel/2.24;
 
       // Check if the vehicle is in a valuable up range for the car to care about
       if(check_car_s > car_s && (check_car_s-car_s) < 60){
-        cost+= pow( 30 / (check_car_s-car_s) , 3);
-        costs.up = pow( 30 / (check_car_s-car_s) , 3);
+        cost+= pow( 30 / (check_car_s-car_s) , 2);
       }
 
       // Check if the vehicle is in a valuable back range for the car to care about
-      if(check_car_s < car_s && (car_s-check_car_s) < 60 + ((check_speed - ref_vel))){
-        cost+= pow((30 + (check_speed - ref_vel)) / (car_s-check_car_s) ,4);
-        
-        costs.back = pow((60 + (check_speed - ref_vel)) / (car_s-check_car_s) ,4);
-        costs.back_param1 = (check_speed - ref_vel);
-        costs.back_param2 = (car_s-check_car_s);
+      if(check_car_s < car_s && (car_s-check_car_s) < 90 + ((check_speed - ref_vel_mt_s))){
+        cost+= pow(((20 + (check_speed - ref_vel_mt_s))) / (car_s-check_car_s), 3);
+
         
       }
       trajectory.costs.push_back(costs);
@@ -194,16 +188,17 @@ vector<vector<double>> Planner::calculateTrajectory(){
 
   if(ref_vel > target_vel)
   {
-    ref_vel-=.244 - 1/exp((ref_vel-target_vel))*.244;
+    ref_vel-=.433 - (1/exp((ref_vel-target_vel))*.433);
+    // cout << "target: " << target_vel << " - ref_vel:" << ref_vel << endl;
   } 
   else if(ref_vel < target_vel)
   {
-    ref_vel+=.224;
+    ref_vel+=.433;
   }
 
-  // If the car is in the correct choosen lane reset to IDLE state  +- 0.5
+  // If the car is in the correct choosen lane reset to KEEP_LANE state  +- 0.5
   if(state == CHANGING_LANE && car_d < (2+4*lane+1) && car_d > (2+4*lane-1)){
-    state = IDLE;
+    state = KEEP_LANE;
   }
 
   vector<Trajectory> trajectories;
@@ -225,7 +220,7 @@ vector<vector<double>> Planner::calculateTrajectory(){
 
   Trajectory trj = keepTrajectory;
 
-  if(state == IDLE)
+  if(state == KEEP_LANE)
   {
     for(int i = 0; i < trajectories.size(); i++){
       if(trajectories[i].cost < trj.cost){

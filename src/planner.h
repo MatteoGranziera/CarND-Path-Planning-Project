@@ -9,12 +9,13 @@ using nlohmann::json;
 using std::vector;
 
 enum State {
-  IDLE,
+  KEEP_LANE,
   CHANGING_LANE,
 };
 
 struct Costs{
   int vehicleId;
+
   double up;
   double back;
   double back_param1;
@@ -68,7 +69,7 @@ class Planner {
     int prev_size;
 
     int lane;
-    State state = IDLE;
+    State state = KEEP_LANE;
 
     double ref_vel;
     double step_acc;
