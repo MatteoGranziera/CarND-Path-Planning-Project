@@ -34,4 +34,6 @@ The cost is evaluated using the final lane and at the last time step of the traj
 
 ## Final trajectory
 
+planner.cpp: 221-274
+
 The the final trajectory is choose by taking the lower cost trajectory and this trajectory make is a changing lane the state is set to CHANGING_LANE.
