@@ -37,3 +37,8 @@ The cost is evaluated using the final lane and at the last time step of the traj
 planner.cpp: 221-274
 
 The the final trajectory is choose by taking the lower cost trajectory and this trajectory make is a changing lane the state is set to CHANGING_LANE.
+
+## Possible improvements
+
+- By considering cars in other lane it's possible to subtract some cost and choose to change lane when the car is near boundaries, and have to "escape" from a closing situation.
+- It's possible to create trajectories with two changing lane by increasing the cost function distance of interest.
